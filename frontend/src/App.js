@@ -24,6 +24,7 @@ import TicketEdit from "./Pages/Ticket/Edit";
 import CommonUser from "./Pages/Commonuser"
 import CheckStatus from "./Pages/Commonuser/CheckStatus"
 import EditTicket from "./Pages/Commonuser/EditTicket"
+import TotalIssueTicketsPage from "./Pages/Commonuser/TotalTicketIssue"
 
 
 function App() {
@@ -47,6 +48,7 @@ function App() {
           <Route path="common" element={<CommonUser/>} />
           <Route path="checkStatus" element={<CheckStatus/>} />
           <Route path="editTicket/:id" element={<EditTicket/>} />
+          <Route path="total-issue-tickets" element={<TotalIssueTicketsPage />} />
           
        
         </Route>

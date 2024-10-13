@@ -1,14 +1,11 @@
 import React, { useEffect, useState, useMemo } from "react";
 import Container from "react-bootstrap/Container";
 import Form from "react-bootstrap/Form";
-import OverlayTrigger from "react-bootstrap/OverlayTrigger";
-import Tooltip from "react-bootstrap/Tooltip";
 import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
 import Badge from "react-bootstrap/Badge";
 import { axiosSecure } from "../../../api/axios";
 import useAxios from "../../../Hooks/useAxios";
-import "./listUser.scss";
 import PaginationComponent from "../../../component/Pagination/Pagination";
 import Modal from "react-bootstrap/Modal";
 import AddTicket from "../Add/index";
@@ -57,15 +54,16 @@ const TicketList = () => {
     fetchUserDetails(currentPage);
   }, [currentPage]);
 
-  // Update suggestions as the user types
   useEffect(() => {
     if (search) {
       const debouncedFetch = debounce(() => {
         fetchUserDetails(currentPage, search);
+
+        // Filter suggestions by priority
         const filteredSuggestions = (response?.tickets || []).filter(ticket =>
-          ticket.description.toLowerCase().includes(search.toLowerCase()) ||
-          ticket.assignee.toLowerCase().includes(search.toLowerCase())
+          ticket.priority.toLowerCase().includes(search.toLowerCase())  // Match based on priority
         );
+
         setSuggestions(filteredSuggestions);
         setShowSuggestions(true);
       }, 300);
@@ -113,8 +111,7 @@ const TicketList = () => {
 
     if (search) {
       filteredResult = filteredResult.filter((currentItem) =>
-        currentItem.description.toLowerCase().includes(search.toLowerCase()) ||
-        currentItem.assignee.toLowerCase().includes(search.toLowerCase())
+        currentItem.priority.toLowerCase().includes(search.toLowerCase())  // Filter based on priority
       );
     }
     return filteredResult.slice(
@@ -128,7 +125,7 @@ const TicketList = () => {
   };
 
   const handleSuggestionClick = (suggestion) => {
-    setSearch(suggestion.description);  // Set the search field with selected suggestion
+    setSearch(suggestion.priority);  // Set the search field with selected suggestion
     setShowSuggestions(false);  // Hide suggestions after selection
   };
 
@@ -160,17 +157,8 @@ const TicketList = () => {
             onChange={handleSearch} 
             value={search}
             type="text" 
-            placeholder="Search tickets" 
+            placeholder="Search by Priority (e.g., High, Medium, Low)" 
           />
-          {showSuggestions && (
-            <ul className="suggestions-list">
-              {suggestions.map((suggestion) => (
-                <li key={suggestion._id} onClick={() => handleSuggestionClick(suggestion)}>
-                  {suggestion.description} - {suggestion.assignee}
-                </li>
-              ))}
-            </ul>
-          )}
         </Form.Group>
       </div>
 
@@ -182,6 +170,54 @@ const TicketList = () => {
         </div>
       )}
       {!loading && error && <p className="alert alert-danger">{error}</p>}
+
+      {/* Display Suggestions as Cards */}
+      {showSuggestions && (
+        <div className="suggestions-cards">
+          {suggestions.map((suggestion) => (
+            <div key={suggestion._id} className="ticket-item p-3 mb-3 border rounded">
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <h5>Ticket ID: {suggestion._id}</h5>
+                <Form.Select 
+                  value={suggestion.status} 
+                  onChange={(e) => handleStatusChange(suggestion._id, e.target.value)}
+                  style={{ width: 'auto' }}
+                >
+                  <option value="Open">Open</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Closed">Closed</option>
+                </Form.Select>
+              </div>
+              <div className="mb-2">
+                <strong>Description:</strong> {suggestion.description}
+              </div>
+              <div className="mb-2">
+                <strong>Priority:</strong> 
+                <Badge bg={suggestion.priority === 'High' ? 'danger' : suggestion.priority === 'Medium' ? 'warning' : 'info'} className="ms-2">
+                  {suggestion.priority}
+                </Badge>
+              </div>
+              <div className="mb-2">
+                <strong>Assignee:</strong> {suggestion.assignee}
+              </div>
+              <div className="mb-2">
+                <strong>Category:</strong> {suggestion.category}
+              </div>
+              <div className="mb-2">
+                <strong>Created By:</strong> {userEmail}
+              </div>
+              <div className="mb-2">
+                <strong>Entry Date:</strong> {formatDate(suggestion.createdAt)}
+              </div>
+              <div className="d-flex justify-content-end mt-3">
+                <Button variant="outline-danger" size="sm" onClick={() => handleDeleteTicket(suggestion._id)}>
+                  <i className="bi bi-trash"></i> Delete
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {totalItems > 0 && (
         <div className="ticket-list">
@@ -221,25 +257,21 @@ const TicketList = () => {
                 <strong>Entry Date:</strong> {formatDate(item.createdAt)}
               </div>
               <div className="d-flex justify-content-end mt-3">
-                <OverlayTrigger placement="top" overlay={<Tooltip>Delete Ticket</Tooltip>}>
-                  <Button variant="outline-danger" size="sm" onClick={() => handleDeleteTicket(item._id)}>
-                    <i className="bi bi-trash"></i> Delete
-                  </Button>
-                </OverlayTrigger>
+                <Button variant="outline-danger" size="sm" onClick={() => handleDeleteTicket(item._id)}>
+                  <i className="bi bi-trash"></i> Delete
+                </Button>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      <div className="d-flex justify-content-end mt-4">
-        <PaginationComponent
-          total={response?.user?.length}
-          itemsPerPage={ITEMS_PER_PAGE}
-          currentPage={currentPage}
-          onPageChange={(page) => setCurrentPage(page)}
-        />
-      </div>
+      <PaginationComponent
+        totalItems={totalItems}
+        itemsPerPage={ITEMS_PER_PAGE}
+        currentPage={currentPage}
+        onPageChange={(page) => setCurrentPage(page)}
+      />
 
       {/* Add Ticket Modal */}
       <Modal show={showAddModal} onHide={handleCloseAdd}>
