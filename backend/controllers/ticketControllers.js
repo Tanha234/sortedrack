@@ -253,11 +253,110 @@ const getSingleTicket = async (req, res) => {
 //     throw new CustomError.BadRequestError("Error creating ticket: " + error.message);
 //   }
 // };
+// const createTicket = async (req, res) => {
+//   console.log("Received ticket data:", req.body);
+
+//   const { title, description, priority, status, department, assignee, category, dueDate } = req.body;
+
+//   if (!title || !description || !priority || !status || !department) {
+//     throw new CustomError.BadRequestError("Please provide all required fields");
+//   }
+
+//   try {
+//     const ticketData = {
+//       title,
+//       description,
+//       priority,
+//       status,
+//       department,
+//       assignee: assignee || null,
+//       category: category || null,
+//       dueDate: dueDate ? new Date(dueDate) : null,
+//     };
+
+//     console.log("Attempting to create ticket with data:", ticketData);
+
+//     const ticket = await Ticket.create(ticketData);
+
+//     console.log("Ticket after creation:", ticket.toObject());
+
+//     // Fetch the ticket again to ensure all fields are returned
+//     const fetchedTicket = await Ticket.findById(ticket._id).lean();
+
+//     console.log("Fetched ticket:", fetchedTicket);
+
+//     res.status(StatusCodes.CREATED).json({ ticket: fetchedTicket });
+//   } catch (error) {
+//     console.error("Error creating ticket:", error);
+//     throw new CustomError.BadRequestError("Error creating ticket: " + error.message);
+//   }
+// };
+// const updateTicket = async (req, res) => {
+//   const { id: ticketId } = req.params;
+//   const { title, description, priority, status, department, assignee, category, dueDate } = req.body;
+
+//   console.log("Updating ticket. Received data:", req.body); // Log received data
+
+//   const ticket = await Ticket.findOne({ _id: ticketId });
+
+//   if (!ticket) {
+//     throw new CustomError.NotFoundError(`No ticket found with id ${ticketId}`);
+//   }
+
+//   if (title) ticket.title = title;
+//   if (description) ticket.description = description;
+//   if (priority) ticket.priority = priority;
+//   if (status) ticket.status = status;
+//   if (department) ticket.department = department;
+//   if (assignee ) ticket.assignee = assignee;
+//   if (category ) ticket.category = category;
+//   if (dueDate ) ticket.dueDate = dueDate ? new Date(dueDate) : null;
+
+//   try {
+//     await ticket.save();
+//     console.log("Updated ticket:", ticket); // Log updated ticket
+//     res.status(StatusCodes.OK).json({ ticket });
+//   } catch (error) {
+//     console.error("Error updating ticket:", error);
+//     throw new CustomError.BadRequestError("Error updating ticket: " + error.message);
+//   }
+// };
+
+// const deleteTicket = async (req, res) => {
+//   const { id: ticketId } = req.params;
+//   const ticket = await Ticket.findOne({ _id: ticketId });
+
+//   if (!ticket) {
+//     throw new CustomError.NotFoundError(`No ticket found with id ${ticketId}`);
+//   }
+
+//   await Ticket.deleteOne({ _id: ticketId });
+//   res.status(StatusCodes.OK).json({ message: "Ticket deleted successfully" });
+// };
+
+// const deleteAllTickets = async (req, res) => {
+//   await Ticket.deleteMany({});
+//   res.status(StatusCodes.OK).json({ message: "All tickets deleted" });
+// };
+
+// module.exports = {
+//   getAllTickets,
+//   getSingleTicket,
+//   createTicket,
+//   updateTicket,
+//   deleteTicket,
+//   deleteAllTickets,
+// };
+const { StatusCodes } = require('http-status-codes'); // Ensure you're importing this for status codes
+const CustomError = require('./custom-error'); // Adjust the import path based on your project structure
+const Ticket = require('./models/Ticket'); // Adjust the import path based on your project structure
+
 const createTicket = async (req, res) => {
   console.log("Received ticket data:", req.body);
 
   const { title, description, priority, status, department, assignee, category, dueDate } = req.body;
 
+  // Check required fields
   if (!title || !description || !priority || !status || !department) {
     throw new CustomError.BadRequestError("Please provide all required fields");
   }
@@ -278,8 +377,6 @@ const createTicket = async (req, res) => {
 
     const ticket = await Ticket.create(ticketData);
 
-    console.log("Ticket after creation:", ticket.toObject());
-
     // Fetch the ticket again to ensure all fields are returned
     const fetchedTicket = await Ticket.findById(ticket._id).lean();
 
@@ -291,28 +388,29 @@ const createTicket = async (req, res) => {
     throw new CustomError.BadRequestError("Error creating ticket: " + error.message);
   }
 };
+
 const updateTicket = async (req, res) => {
   const { id: ticketId } = req.params;
   const { title, description, priority, status, department, assignee, category, dueDate } = req.body;
 
   console.log("Updating ticket. Received data:", req.body); // Log received data
 
-  const ticket = await Ticket.findOne({ _id: ticketId });
-
-  if (!ticket) {
-    throw new CustomError.NotFoundError(`No ticket found with id ${ticketId}`);
-  }
-
-  if (title) ticket.title = title;
-  if (description) ticket.description = description;
-  if (priority) ticket.priority = priority;
-  if (status) ticket.status = status;
-  if (department) ticket.department = department;
-  if (assignee ) ticket.assignee = assignee;
-  if (category ) ticket.category = category;
-  if (dueDate ) ticket.dueDate = dueDate ? new Date(dueDate) : null;
-
   try {
+    const ticket = await Ticket.findById(ticketId);
+    if (!ticket) {
+      throw new CustomError.NotFoundError(`No ticket found with id ${ticketId}`);
+    }
+
+    // Update fields only if they are provided in the request
+    if (title) ticket.title = title;
+    if (description) ticket.description = description;
+    if (priority) ticket.priority = priority;
+    if (status) ticket.status = status;
+    if (department) ticket.department = department;
+    if (assignee) ticket.assignee = assignee;
+    if (category) ticket.category = category;
+    if (dueDate) ticket.dueDate = dueDate ? new Date(dueDate) : null;
+
     await ticket.save();
     console.log("Updated ticket:", ticket); // Log updated ticket
     res.status(StatusCodes.OK).json({ ticket });
@@ -324,24 +422,32 @@ const updateTicket = async (req, res) => {
 
 const deleteTicket = async (req, res) => {
   const { id: ticketId } = req.params;
-  const ticket = await Ticket.findOne({ _id: ticketId });
 
-  if (!ticket) {
-    throw new CustomError.NotFoundError(`No ticket found with id ${ticketId}`);
+  try {
+    const ticket = await Ticket.findById(ticketId);
+    if (!ticket) {
+      throw new CustomError.NotFoundError(`No ticket found with id ${ticketId}`);
+    }
+
+    await Ticket.deleteOne({ _id: ticketId });
+    res.status(StatusCodes.OK).json({ message: "Ticket deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting ticket:", error);
+    throw new CustomError.BadRequestError("Error deleting ticket: " + error.message);
   }
-
-  await Ticket.deleteOne({ _id: ticketId });
-  res.status(StatusCodes.OK).json({ message: "Ticket deleted successfully" });
 };
 
 const deleteAllTickets = async (req, res) => {
-  await Ticket.deleteMany({});
-  res.status(StatusCodes.OK).json({ message: "All tickets deleted" });
+  try {
+    await Ticket.deleteMany({});
+    res.status(StatusCodes.OK).json({ message: "All tickets deleted" });
+  } catch (error) {
+    console.error("Error deleting all tickets:", error);
+    throw new CustomError.BadRequestError("Error deleting tickets: " + error.message);
+  }
 };
 
 module.exports = {
-  getAllTickets,
-  getSingleTicket,
   createTicket,
   updateTicket,
   deleteTicket,

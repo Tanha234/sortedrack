@@ -14,6 +14,8 @@ import Modal from "react-bootstrap/Modal";
 import AddTicket from "../../Pages/Ticket/Add"; 
 import TicketEdit from "../../Pages/Ticket/Edit"; 
 import { debounce } from 'lodash';
+import { useParams, useNavigate } from "react-router-dom";
+import { FaSave, FaArrowLeft, FaTrash } from "react-icons/fa";
 
 const TicketList = () => {
   const [response, error, loading, axiosFetch] = useAxios();
@@ -25,6 +27,7 @@ const TicketList = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedTicketId, setSelectedTicketId] = useState(null);
+  const navigate = useNavigate();
 
   const fetchUserDetails = async (page = 1) => {
     await axiosFetch({
@@ -147,7 +150,14 @@ const TicketList = () => {
             />
           </OverlayTrigger>
         </Form.Group>
-        <Button variant="primary" onClick={handleShowAdd}>Create Ticket</Button>
+        <div className="d-flex">
+        <Button variant="success" className="mb-3 me-2" onClick={() => navigate("/common")}>
+          <FaArrowLeft /> Back
+        </Button>
+        <Button className="mb-3 me-2" variant="primary" onClick={handleShowAdd}>
+          Create Ticket
+        </Button>
+      </div>
       </div>
 
       {loading && (
@@ -184,9 +194,9 @@ const TicketList = () => {
                 <p className="priority">Priority: <span className={`priority-${item.priority.toLowerCase()}`}>{item.priority}</span></p>
               </div>
               <div className="ticket-footer">
-                
+                 <Link to={`/editTicket/${item._id}`}>
     <Button variant="outline-primary" size="sm">Edit</Button>
-
+  </Link>
                 <Button variant="outline-danger" size="sm" onClick={() => handleDeleteTicket(item._id)}>Delete</Button>
               </div>
             </div>

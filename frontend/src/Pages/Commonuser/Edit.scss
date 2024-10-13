@@ -2,3 +2,99 @@
   width: 80%;
   margin-top: 20px;
 }
+.ticket-edit-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.ticket-edit-card {
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border: none;
+  border-radius: 8px;
+  overflow: hidden;
+
+  .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    padding: 1.5rem;
+    position: relative;
+
+    h2 {
+      margin-bottom: 0;
+    }
+
+    .btn-outline-primary {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+  }
+
+  .card-body {
+    padding: 2rem;
+  }
+
+  .form-label {
+    font-weight: 600;
+    color: #495057;
+  }
+
+  .form-control, .form-select {
+    border-radius: 0.25rem;
+    border: 1px solid #ced4da;
+    padding: 0.5rem 0.75rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+
+    &:focus {
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+      border-color: #80bdff;
+    }
+  }
+
+  .btn {
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    
+    svg {
+      margin-right: 0.5rem;
+    }
+  }
+
+  .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    
+    &:hover:not(:disabled) {
+      background-color: #0056b3;
+      border-color: #0056b3;
+    }
+
+    &:disabled {
+      opacity: 0.65;
+    }
+  }
+
+  .btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+
+    &:hover {
+      background-color: #c82333;
+      border-color: #bd2130;
+    }
+  }
+}
+
+.alert {
+  margin-bottom: 1rem;
+  border-radius: 0.25rem;
+}
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}

@@ -83,6 +83,7 @@ const AddUser = () => {
           <Form onSubmit={handleSubmit}>
             <Container className="add-user-page d-flex flex-column justify-content-center">
               <h2 className=" mb-4 ">Add User</h2>
+              
               <h5 className="fw-bold mb-3">User Details</h5>
               <Row>
                 <Col md={6} lg={6} xl={6}>

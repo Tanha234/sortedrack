@@ -1,204 +1,3 @@
-// import React, { useState } from "react";
-// import { Formik } from "formik";
-// import Container from "react-bootstrap/Container";
-// import Row from "react-bootstrap/Row";
-// import Col from "react-bootstrap/Col";
-// import Form from "react-bootstrap/Form";
-// import Button from "react-bootstrap/Button";
-// import FloatingLabel from "react-bootstrap/FloatingLabel";
-// import * as yup from "yup";
-// import { axiosSecure } from "../../../api/axios";
-// import { Toaster } from "../../../component/Toaster/Toaster";
-// import "./users.scss"; // Ensure this path is correct
-
-// const schema = yup.object().shape({
-//   description: yup.string().required("Description is required"),
-//   priority: yup.string().required("Priority is required"),
-//   status: yup.string().required("Status is required"),
-// });
-
-// const handleOnSubmit = (values) =>
-//   axiosSecure.post(
-//     "/tickets",
-//     {
-//       description: values.description,
-//       priority: values.priority,
-//       status: values.status,
-//       assignee: values.assignee,
-//       category: values.category,
-//     },
-//     {
-//       headers: {
-//         Authorization: `Bearer ${localStorage.userDetails && JSON.parse(localStorage.userDetails).token}`,
-//       },
-//     }
-//   );
-
-// const AddTicket = () => {
-//   const [showAddToaster, setShowAddToaster] = useState(false);
-//   const [showErrorToaster, setShowErrorToaster] = useState(false);
-//   const [error, setError] = useState("");
-
-//   return (
-//     <div className="flex-grow-1">
-//       <Formik
-//         validationSchema={schema}
-//         initialValues={{
-//           description: "",
-//           priority: "",
-//           status: "Open", // Default status
-//           assignee: "",
-//           category: "",
-//         }}
-//         onSubmit={async (values, { setSubmitting }) => {
-//           try {
-//             const response = await handleOnSubmit(values);
-//             if (response.status === 201) {
-//               setShowAddToaster(true);
-//             }
-//           } catch (errorMsg) {
-//             setError(errorMsg.response.data.msg);
-//             setShowErrorToaster(true);
-//           }
-//           setSubmitting(false);
-//         }}
-//       >
-//         {({
-//           values,
-//           errors,
-//           touched,
-//           handleChange,
-//           handleSubmit,
-//           isSubmitting,
-//         }) => (
-//           <Form onSubmit={handleSubmit}>
-//             <Container className="add-ticket-page d-flex flex-column justify-content-center">
-//               <h2 className="mb-4">Add Ticket</h2>
-//               <Row>
-//                 <Col md={12} lg={12}>
-//                   <FloatingLabel
-//                     controlId="floatingDescription"
-//                     label="Ticket Description"
-//                     className="mb-3"
-//                   >
-//                     <Form.Control
-//                       as="textarea"
-//                       placeholder="Description"
-//                       name="description"
-//                       value={values.description}
-//                       onChange={handleChange}
-//                       isInvalid={touched.description && !!errors.description}
-//                     />
-//                     <div className="invalid-feedback">
-//                       {errors.description && touched.description && errors.description}
-//                     </div>
-//                   </FloatingLabel>
-//                 </Col>
-
-//                 <Col md={6} lg={6}>
-//                   <FloatingLabel>
-//                     <Form.Select
-//                       name="priority"
-//                       aria-label="Select Priority"
-//                       className="select-padding" // Add padding class here
-//                       isInvalid={!!touched.priority && !!errors.priority}
-//                       value={values.priority}
-//                       onChange={handleChange}
-//                     >
-//                       <option value="" disabled hidden>Select Priority</option>
-//                       <option value="Low">Low</option>
-//                       <option value="Medium">Medium</option>
-//                       <option value="High">High</option>
-//                     </Form.Select>
-//                     <label htmlFor="floatingSelect">Priority</label>
-//                     <div className="invalid-feedback">
-//                       {touched.priority && errors.priority}
-//                     </div>
-//                   </FloatingLabel>
-//                 </Col>
-
-//                 <Col md={6} lg={6}>
-//                   <FloatingLabel>
-//                     <Form.Select
-//                       name="status"
-//                       aria-label="Select Status"
-//                       isInvalid={!!touched.status && !!errors.status}
-//                       value={values.status}
-//                       onChange={handleChange}
-//                     >
-//                       <option value="Open">Open</option>
-//                       <option value="In Progress">In Progress</option>
-//                       <option value="Closed">Closed</option>
-//                     </Form.Select>
-//                     <label htmlFor="floatingSelect">Status</label>
-//                     <div className="invalid-feedback">
-//                       {touched.status && errors.status}
-//                     </div>
-//                   </FloatingLabel>
-//                 </Col>
-
-//                 <Col md={6} lg={6}>
-//                   <FloatingLabel
-//                     controlId="floatingAssignee"
-//                     label="Assignee (optional)"
-//                     className="mb-3"
-//                   >
-//                     <Form.Control
-//                       type="text"
-//                       placeholder="Assignee"
-//                       name="assignee"
-//                       value={values.assignee}
-//                       onChange={handleChange}
-//                     />
-//                   </FloatingLabel>
-//                 </Col>
-
-//                 <Col md={6} lg={6}>
-//                   <FloatingLabel
-//                     controlId="floatingCategory"
-//                     label="Category (optional)"
-//                     className="mb-3"
-//                   >
-//                     <Form.Control
-//                       type="text"
-//                       placeholder="Category"
-//                       name="category"
-//                       value={values.category}
-//                       onChange={handleChange}
-//                     />
-//                   </FloatingLabel>
-//                 </Col>
-//               </Row>
-//               <Col md={12} lg={12} className="mt-4 mb-4">
-//                 <Button type="submit" disabled={isSubmitting}>
-//                   CREATE TICKET
-//                 </Button>
-//               </Col>
-//             </Container>
-//           </Form>
-//         )}
-//       </Formik>
-//       <Toaster
-//         title="Ticket created successfully"
-//         bg="success"
-//         showToaster={showAddToaster}
-//         setShowToaster={setShowAddToaster}
-//         to="tickets"
-//       />
-//       <Toaster
-//         title={error}
-//         bg="danger"
-//         showToaster={showErrorToaster}
-//         setShowToaster={setShowErrorToaster}
-//         to="tickets/add"
-//       />
-//     </div>
-//   );
-// };
-
-// export default AddTicket;
-
-// AddTicket.js
 import React, { useState } from "react";
 import { Formik } from "formik";
 import Container from "react-bootstrap/Container";
@@ -207,11 +6,14 @@ import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
+import { useParams, useNavigate } from "react-router-dom";
 import * as yup from "yup";
 import { axiosSecure } from "../../../api/axios";
 import { Toaster } from "../../../component/Toaster/Toaster";
 import "./users.scss";
+import { FaSave, FaArrowLeft, FaTrash } from "react-icons/fa";
 
+// Validation schema
 const schema = yup.object().shape({
   title: yup.string().required("Title is required"),
   description: yup.string().required("Description is required"),
@@ -223,8 +25,9 @@ const schema = yup.object().shape({
   category: yup.string().nullable(),
 });
 
+// Function to handle submission
 const handleOnSubmit = async (values) => {
-  console.log("Submitting values:", values); 
+  console.log("Submitting values:", values);
   try {
     const response = await axiosSecure.post(
       "/tickets",
@@ -245,22 +48,28 @@ const handleOnSubmit = async (values) => {
       }
     );
     console.log("Response data:", response.data); // Log response data
-    return response;
+    return response; // Return the response for checking in the form submission
   } catch (error) {
     console.error("Error submitting ticket:", error.response ? error.response.data : error.message);
-    throw error;
+    throw error; // Rethrow error to be caught in the form submission
   }
 };
 
+// Main AddTicket component
 const AddTicket = () => {
   const [showAddToaster, setShowAddToaster] = useState(false);
   const [showErrorToaster, setShowErrorToaster] = useState(false);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   return (
     <div className="os-window">
       <div className="os-titlebar">
         <span className="os-title">Add New Ticket</span>
+        {/* Navigate back to the previous page */}
+        <Button variant="success" className="mb-3" onClick={() => navigate("/common")}>
+          <FaArrowLeft /> Back
+        </Button>
       </div>
       <div className="os-content">
         <Formik
@@ -281,14 +90,14 @@ const AddTicket = () => {
               const response = await handleOnSubmit(values);
               if (response.status === 201) {
                 setShowAddToaster(true);
-                resetForm();
+                resetForm(); // Reset the form after successful submission
               }
             } catch (errorMsg) {
               console.error("Error submitting form:", errorMsg);
               setError(errorMsg.response?.data?.msg || "An error occurred while creating the ticket");
-              setShowErrorToaster(true);
+              setShowErrorToaster(true); // Show error toaster
             }
-            setSubmitting(false);
+            setSubmitting(false); // End form submission
           }}
         >
           {({
