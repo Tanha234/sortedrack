@@ -5,11 +5,16 @@ import Form from "react-bootstrap/Form";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import { Link } from "react-router-dom";
-import Col from "react-bootstrap/Col";
+import Card from "react-bootstrap/Card";
+import Badge from "react-bootstrap/Badge";
+import InputGroup from "react-bootstrap/InputGroup";
+import Alert from "react-bootstrap/Alert";
+import Button from "react-bootstrap/Button";
 import { axiosSecure } from "../../../api/axios";
 import useAxios from "../../../Hooks/useAxios";
 import "./listUser.scss";
 import PaginationComponent from "../../../component/Pagination/Pagination";
+
 const ListUser = () => {
   const [response, error, loading, axiosFetch] = useAxios();
   const [search, setSearch] = useState("");
@@ -35,9 +40,8 @@ const ListUser = () => {
     });
   };
 
-console.log(totalItems);
   useEffect(() => {
-     fetchUserDetails();
+    fetchUserDetails();
   }, []);
 
   const handleStatusToggle = async (user) => {
@@ -58,6 +62,7 @@ console.log(totalItems);
     );
     fetchUserDetails();
   };
+
   const filtered = useMemo(() => {
     let filteredResult = response?.user?.sort((a, b) =>
       a.fname.localeCompare(b.fname)
@@ -65,8 +70,10 @@ console.log(totalItems);
     setTotalItems(filteredResult?.length);
 
     if (search) {
-      filteredResult = filteredResult.filter((currentItem) =>
-        currentItem.fname.toLowerCase().includes(search.toLowerCase()) || currentItem.username.toLowerCase().includes(search.toLowerCase())
+      filteredResult = filteredResult.filter(
+        (currentItem) =>
+          currentItem.fname.toLowerCase().includes(search.toLowerCase()) ||
+          currentItem.username.toLowerCase().includes(search.toLowerCase())
       );
     }
     return filteredResult?.slice(
@@ -75,102 +82,134 @@ console.log(totalItems);
     );
   }, [currentPage, response, search]);
 
-  console.log("filtered data:",filtered);
-
   const handleSearch = (e) => {
     setSearch(e.target.value);
   };
 
   return (
-    <Container className="flex-grow-1">
-      <div className="d-flex align-items-center justify-content-between">
-        <div className="col-8">
-          <h2 className="py-3">User Listing</h2>
-        </div>
-        <Form.Group
-          as={Col}
-          md="3"
-          className="pe-3"
-          controlId="validationCustom01"
-        >
-          <Form.Control
-            onChange={handleSearch}
-            type="text"
-            placeholder="Search with first name"
-          />
-        </Form.Group>
-        <div style={{ width: "100px" }} className="col-1">
-          <Link to="/user/add" replace className="btn btn-primary">
-            Add User
-          </Link>
-        </div>
-      </div>
-      {loading && (
-        <div className="d-flex justify-content-center">
-          <div className="spinner-border" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-        </div>
-      )}
-      {!loading && error && <p classname="error-msg">{error}</p>}
+    <Container fluid className="py-4 px-4" style={{ backgroundColor: "#f8f9fa" }}>
+      <Card className="shadow-sm">
+        <Card.Body>
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+  <h2 className="mb-3 mb-md-0">User Management</h2>
+  <div className="d-flex flex-column flex-md-row align-items-md-center">
+    <InputGroup className="mb-3 mb-md-0 me-md-3" style={{ width: "300px" }}>
+      <InputGroup.Text id="basic-addon1">
+        <i className="bi bi-search"></i>
+      </InputGroup.Text>
+      <Form.Control
+        onChange={handleSearch}
+        type="text"
+        placeholder="Search users..."
+        aria-label="Search"
+        aria-describedby="basic-addon1"
+      />
+    </InputGroup>
+    <Button 
+      as={Link} 
+      to="/user/add" 
+      variant="primary" 
+      size="lg"
+      className="d-flex align-items-center justify-content-center"
+      style={{ minWidth: "180px" }}
+    >
+      <i className="bi bi-plus-circle me-2"></i>
+      <span>Add New User</span>
+    </Button>
+  </div>
+</div>
+          
+          {loading && (
+            <div className="text-center py-5">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+              <p className="mt-2 text-muted">Loading users...</p>
+            </div>
+          )}
+          
+          {!loading && error && (
+            <Alert variant="danger">
+              <i className="bi bi-exclamation-triangle-fill me-2"></i>
+              {error}
+            </Alert>
+          )}
 
-      {totalItems && (
-        <div className="user-table">
-          <Table striped hover>
-            <thead>
-              <tr>
-                <th>Status</th>
-                <th>First Name</th>
-                <th>Last Name</th>
-                <th>Email</th>
-                <th>Branch</th>
-                <th>Type</th>
-                <th className="text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody className="table-group-divider">
-              {filtered?.map((item, index) => (
-                <tr key={index}>
-                  <td className="text-center">
-                    <Form.Check
-                      type="switch"
-                      id="custom-switch"
-                      defaultChecked={item.status === "active" ? true : false}
-                      onClick={() => handleStatusToggle(item)}
-                    />
-                  </td>
-                  <td>{item.fname}</td>
-                  <td>{item.lname}</td>
-                  <td>{item.email}</td>
-                  <td>{item.branch}</td>
-                  <td>{item.role}</td>
-                  <td className="text-center">
-                    <OverlayTrigger
-                      key={item._id}
-                      placement="bottom"
-                      overlay={
-                        <Tooltip id={`tooltip-${item._id}`}>Edit User</Tooltip>
-                      }
-                    >
-                      <Link to={`/user/edit/${item._id}`} replace>
-                        <i className="bi bi-pencil-square"></i>
-                      </Link>
-                    </OverlayTrigger>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        </div>
-      )}
-      <div className="d-flex justify-content-end relative bottom-20 me-3">
-        <PaginationComponent
-          total={response?.user?.length}
-          itemsPerPage={ITEMS_PER_PAGE}
-          currentPage={currentPage}
-          onPageChange={(page) => setCurrentPage(page)}
-        />
-      </div>
+          {totalItems > 0 && (
+            <div className="user-table table-responsive">
+              <Table hover className="align-middle">
+                <thead className="bg-light">
+                  <tr>
+                    <th className="py-3">Status</th>
+                    <th className="py-3">Name</th>
+                    <th className="py-3">Email</th>
+                    <th className="py-3">Branch</th>
+                    <th className="py-3">Role</th>
+                    <th className="py-3 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered?.map((item, index) => (
+                    <tr key={index}>
+                      <td>
+                        <Form.Check
+                          type="switch"
+                          id={`custom-switch-${item._id}`}
+                          defaultChecked={item.status === "active"}
+                          onClick={() => handleStatusToggle(item)}
+                        />
+                      </td>
+                      <td>
+                        <div>
+                          <div>{`${item.fname} ${item.lname}`}</div>
+                          <small className="text-muted">{item.username}</small>
+                        </div>
+                      </td>
+                      <td>{item.email}</td>
+                      <td>{item.branch}</td>
+                      <td>
+                        <Badge bg={item.role === 'admin' ? 'primary' : 'secondary'} pill>
+                          {item.role}
+                        </Badge>
+                      </td>
+                      <td className="text-center">
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={<Tooltip>Edit User</Tooltip>}
+                        >
+                          <Button as={Link} to={`/user/edit/${item._id}`} variant="outline-primary" size="sm" className="me-2">
+                            <i className="bi bi-pencil"></i>
+                          </Button>
+                        </OverlayTrigger>
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={<Tooltip>Delete User</Tooltip>}
+                        >
+                          <Button variant="outline-danger" size="sm">
+                            <i className="bi bi-trash"></i>
+                          </Button>
+                        </OverlayTrigger>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </div>
+          )}
+          
+          <div className="d-flex justify-content-between align-items-center mt-4">
+            <p className="mb-0 text-muted">
+              Showing {filtered?.length} out of {totalItems} users
+            </p>
+            <PaginationComponent
+              total={response?.user?.length}
+              itemsPerPage={ITEMS_PER_PAGE}
+              currentPage={currentPage}
+              onPageChange={(page) => setCurrentPage(page)}
+            />
+          </div>
+        </Card.Body>
+      </Card>
     </Container>
   );
 };
