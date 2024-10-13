@@ -194,7 +194,7 @@ const TicketList = () => {
                 <p className="priority">Priority: <span className={`priority-${item.priority.toLowerCase()}`}>{item.priority}</span></p>
               </div>
               <div className="ticket-footer">
-                 <Link to={`/editTicket/${item._id}`}>
+                 <Link to={`/tickets/edit/${item._id}`}>
     <Button variant="outline-primary" size="sm">Edit</Button>
   </Link>
                 <Button variant="outline-danger" size="sm" onClick={() => handleDeleteTicket(item._id)}>Delete</Button>

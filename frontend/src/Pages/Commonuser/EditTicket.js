@@ -1,199 +1,195 @@
-import React, { useEffect, useState } from "react";
-import { axiosSecure } from "../../api/axios";
-import { useParams, useNavigate } from "react-router-dom";
-import Button from "react-bootstrap/Button";
-import Form from "react-bootstrap/Form";
-import Card from "react-bootstrap/Card";
+import React, { useState, useEffect } from "react";
+import { Formik } from "formik";
+import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import Alert from "react-bootstrap/Alert";
-import Spinner from "react-bootstrap/Spinner";
-import { FaSave, FaArrowLeft, FaTrash } from "react-icons/fa";
+import FloatingLabel from "react-bootstrap/FloatingLabel";
+import Form from "react-bootstrap/Form";
+import Button from "react-bootstrap/Button";
+import { useParams, useNavigate } from "react-router-dom";
+import { axiosSecure } from "../../api/axios";
+import useAxios from "../../Hooks/useAxios";
 import "./Edit.scss";
+import { Toaster } from "../../component/Toaster/Toaster";
 
-const TicketEdit = () => {
+const EditTicket = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [ticket, setTicket] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [isEdited, setIsEdited] = useState(false);
+  const [showToaster, setShowToaster] = useState(false);
+  const [response, error, loading, axiosFetch] = useAxios();
+  const [initialValues, setInitialValues] = useState({});
 
   useEffect(() => {
-    const fetchTicket = async () => {
-      const token = localStorage.getItem("userDetails") && JSON.parse(localStorage.getItem("userDetails")).token;
-
-      try {
-        const response = await axiosSecure.get(`/tickets/${id}`, {
+    axiosFetch({
+      axiosInstance: axiosSecure,
+      method: "GET",
+      url: `/ticket/${id}`,
+      requestConfig: [
+        {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${
+              localStorage.userDetails &&
+              JSON.parse(localStorage.userDetails).token
+            }`,
           },
-        });
-        setTicket(response.data.ticket);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTicket();
-  }, [id]);
-
-  const handleSave = async () => {
-    const token = localStorage.getItem("userDetails") && JSON.parse(localStorage.getItem("userDetails")).token;
-
-    if (!token) {
-      setError("No authorization token found. Please log in again.");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      await axiosSecure.put(`/tickets/${id}`, ticket, {
-        headers: {
-          Authorization: `Bearer ${token}`,
         },
+      ],
+    });
+  }, []);
+
+  useEffect(() => {
+    if (response?.ticket) {
+      const { title, description, priority, status, department, assignee, category, dueDate } = response?.ticket;
+      setInitialValues({
+        title: title,
+        description: description,
+        priority: priority,
+        status: status,
+        department: department,
+        assignee: assignee,
+        category: category,
+        dueDate: dueDate?.split("T")[0],  // Formatting the date to YYYY-MM-DD
       });
-      setSuccessMessage("Ticket updated successfully!");
-      setIsEdited(false);
-    } catch (error) {
-      console.error("Error updating ticket:", error);
-      setError("Failed to update ticket: " + (error.response?.data.message || error.message));
-    } finally {
-      setLoading(false);
     }
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setTicket((prevTicket) => ({
-      ...prevTicket,
-      [name]: value,
-    }));
-    setIsEdited(true);
-  };
-
-  const handleDelete = async () => {
-    if (window.confirm("Are you sure you want to delete this ticket?")) {
-      const token = localStorage.getItem("userDetails") && JSON.parse(localStorage.getItem("userDetails")).token;
-      try {
-        await axiosSecure.delete(`/tickets/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        navigate("/tickets"); // Redirect to tickets list
-      } catch (error) {
-        setError("Failed to delete ticket: " + (error.response?.data.message || error.message));
-      }
-    }
-  };
-
-  if (loading) return (
-    <div className="loading-spinner">
-      <Spinner animation="border" role="status">
-        <span className="visually-hidden">Loading...</span>
-      </Spinner>
-    </div>
-  );
-
-  if (error) return <Alert variant="danger" className="mt-3">{error}</Alert>;
+  }, [response]);
 
   return (
-    <div className="ticket-edit-container">
-      <Card className="ticket-edit-card">
-        <Card.Header as="h2" className="text-center">
-          Edit Ticket
-          <Button variant="outline-primary" className="float-start" onClick={() => navigate("/checkStatus")}>
-            <FaArrowLeft /> Back
-          </Button>
-        </Card.Header>
-        <Card.Body>
-          {successMessage && <Alert variant="success">{successMessage}</Alert>}
-          {ticket && (
-            <Form>
-              <Row>
-                <Col md={6}>
-                  <Form.Group controlId="formTicketID" className="mb-3">
-                    <Form.Label>Ticket ID</Form.Label>
-                    <Form.Control
-  type="text"
-  name="id"
-  value={ticket.id || id}
-  readOnly
-  className="form-control-plaintext readonly-field"
-/>
-                  </Form.Group>
-                </Col>
-                <Col md={6}>
-                  <Form.Group controlId="formStatus" className="mb-3">
-                    <Form.Label>Status</Form.Label>
-                    <Form.Control
-                      as="select"
-                      name="status"
-                      value={ticket.status || "In Progress"}
-                      onChange={handleChange}
-                    >
-                      <option value="Open">Open</option>
-                      <option value="In Progress">In Progress</option>
-                      <option value="Closed">Closed</option>
-                    </Form.Control>
-                  </Form.Group>
-                </Col>
-              </Row>
-              <Row>
-             
-                  <Form.Group controlId="formAssignee" className="mb-3">
-                    <Form.Label>Assignee</Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="assignee"
-                      value={ticket.assignee || "Mahmud"}
-                      onChange={handleChange}
-                    />
-                  </Form.Group>
-             
-            
-              </Row>
-              <Form.Group controlId="formPriority" className="mb-3">
-                <Form.Label>Priority</Form.Label>
-                <Form.Control
-                  as="select"
-                  name="priority"
-                  value={ticket.priority || "Medium"}
-                  onChange={handleChange}
-                >
-                  <option value="Low">Low</option>
-                  <option value="Medium">Medium</option>
-                  <option value="High">High</option>
-                </Form.Control>
-              </Form.Group>
-              <Form.Group controlId="formDescription" className="mb-3">
-                <Form.Label>Description</Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={3}
-                  name="description"
-                  value={ticket.description || ""}
-                  onChange={handleChange}
-                />
-              </Form.Group>
-              <div className="d-flex justify-content-between">
-                <Button variant="danger" onClick={handleDelete}>
-                  <FaTrash /> Delete Ticket
-                </Button>
-                <Button variant="primary" onClick={handleSave} disabled={!isEdited}>
-                  <FaSave /> Save Changes
-                </Button>
-              </div>
-            </Form>
+    <div className="flex-grow-1">
+      {Object.keys(initialValues).length > 0 && (
+        <Formik
+          initialValues={initialValues}
+          validate={(values) => {
+            const errors = {};
+            if (!values.title) {
+              errors.title = "Title is mandatory";
+            }
+            if (!values.description) {
+              errors.description = "Description is mandatory";
+            }
+            return errors;
+          }}
+          onSubmit={(values, { setSubmitting }) => {
+            axiosFetch({
+              axiosInstance: axiosSecure,
+              method: "PATCH",
+              url: `/ticket/updateTicket/${id}`,
+              requestConfig: [
+                {
+                  title: values.title,
+                  description: values.description,
+                  priority: values.priority,
+                  status: values.status,
+                  department: values.department,
+                  assignee: values.assignee,
+                  category: values.category,
+                  dueDate: values.dueDate,
+                },
+                {
+                  headers: {
+                    Authorization: `Bearer ${
+                      localStorage.userDetails &&
+                      JSON.parse(localStorage.userDetails).token
+                    }`,
+                  },
+                },
+              ],
+            });
+            setSubmitting(false);
+            setShowToaster(true);
+            navigate("/ticket", { replace: true });
+          }}
+        >
+          {({
+            values,
+            errors,
+            touched,
+            handleChange,
+            handleBlur,
+            handleSubmit,
+            isSubmitting,
+            /* and other goodies */
+          }) => (
+            <form onSubmit={handleSubmit}>
+              <Container className="edit-ticket-page d-flex justify-content-center flex-column">
+                <h2 className="mb-4">Edit Ticket</h2>
+                <Row>
+                  <Col md={6} lg={6} xl={6}>
+                    <FloatingLabel controlId="floatingTitle" label="Title" className="mb-3">
+                      <Form.Control
+                        type="text"
+                        placeholder="Title"
+                        name="title"
+                        value={values.title}
+                        onChange={handleChange}
+                      />
+                      <p className="errorMsg">{errors.title}</p>
+                    </FloatingLabel>
+                  </Col>
+                  <Col md={6} lg={6} xl={6}>
+                    <FloatingLabel controlId="floatingPriority" label="Priority" className="mb-3">
+                      <Form.Control
+                        type="text"
+                        placeholder="Priority"
+                        name="priority"
+                        value={values.priority}
+                        onChange={handleChange}
+                      />
+                    </FloatingLabel>
+                  </Col>
+                  <Col md={12} lg={12} xl={12}>
+                    <FloatingLabel controlId="floatingDescription" label="Description" className="mb-3">
+                      <Form.Control
+                        as="textarea"
+                        placeholder="Description"
+                        name="description"
+                        value={values.description}
+                        onChange={handleChange}
+                      />
+                      <p className="errorMsg">{errors.description}</p>
+                    </FloatingLabel>
+                  </Col>
+                  <Col md={6} lg={6} xl={6}>
+                    <FloatingLabel controlId="floatingStatus" label="Status" className="mb-3">
+                      <Form.Control
+                        type="text"
+                        placeholder="Status"
+                        name="status"
+                        value={values.status}
+                        onChange={handleChange}
+                      />
+                    </FloatingLabel>
+                  </Col>
+                  <Col md={6} lg={6} xl={6}>
+                    <FloatingLabel controlId="floatingDueDate" label="Due Date" className="mb-3">
+                      <Form.Control
+                        type="date"
+                        placeholder="Due Date"
+                        name="dueDate"
+                        value={values.dueDate}
+                        onChange={handleChange}
+                      />
+                    </FloatingLabel>
+                  </Col>
+                  <Col md={12} lg={12} xl={12} className="mt-4 mb-4 ">
+                    <Button type="submit" disabled={isSubmitting}>
+                      UPDATE TICKET
+                    </Button>
+                  </Col>
+                </Row>
+              </Container>
+            </form>
           )}
-        </Card.Body>
-      </Card>
+        </Formik>
+      )}
+      <Toaster
+        title="Ticket updated successfully"
+        bg="success"
+        showToaster={showToaster}
+        setShowToaster={setShowToaster}
+        to="ticket"
+      ></Toaster>
     </div>
   );
 };
 
-export default TicketEdit;
+export default EditTicket;
