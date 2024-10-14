@@ -51,11 +51,11 @@ const TicketEdit = () => {
     }
 
     try {
-      setLoading(true);
+      setLoading(true); 
       // Log ticket data before sending the request
       console.log("Updating ticket with data:", ticket);
 
-      await axiosSecure.put(`/tickets/${id}`, ticket, {
+      await axiosSecure.patch(`/tickets/${id}`, ticket, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

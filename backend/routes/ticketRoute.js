@@ -8,6 +8,7 @@ const {
   updateTicket,
   deleteTicket,
   deleteAllTickets,
+  getMyTickets,
 } = require("../controllers/ticketControllers");
 
 const {
@@ -17,8 +18,15 @@ const {
 
 router
   .route("/")
-  .get([authenticateUser, authorizeRoles("superadmin", "admin", "user")], getAllTickets)
-  .post(authenticateUser, authorizeRoles("superadmin", "admin", "user"), createTicket);
+  .get(
+    [authenticateUser, authorizeRoles("superadmin", "admin", "user")],
+    getAllTickets
+  )
+  .post(
+    authenticateUser,
+    authorizeRoles("superadmin", "admin", "user"),
+    createTicket
+  );
 
 router
   .route("/deleteAllTickets")
@@ -28,10 +36,19 @@ router
     deleteAllTickets
   );
 
+router.route("/myTickets").get(authenticateUser, getMyTickets);
 router
   .route("/:id")
   .get(authenticateUser, getSingleTicket)
-  .patch(authenticateUser, authorizeRoles("superadmin", "admin", "user"), updateTicket)
-  .delete(authenticateUser, authorizeRoles("superadmin", "admin"), deleteTicket);
+  .patch(
+    authenticateUser,
+    authorizeRoles("superadmin", "admin", "user"),
+    updateTicket
+  )
+  .delete(
+    authenticateUser,
+    authorizeRoles("superadmin", "admin"),
+    deleteTicket
+  );
 
 module.exports = router;

@@ -22,8 +22,6 @@ const getSingleTicket = async (req, res) => {
     throw new CustomError.NotFoundError(`No ticket found with id ${ticketId}`);
   }
 
-  checkPermission(req.user, ticket.assignee); // Assuming you want to check permissions based on the assignee
-
   res.status(StatusCodes.OK).json({ ticket });
 };
 
@@ -89,6 +87,18 @@ const deleteAllTickets = async (req, res) => {
   await Ticket.deleteMany({});
   res.status(StatusCodes.OK).json({ message: "All tickets deleted" });
 };
+const getMyTickets = async (req, res) => {
+  const userId = req.user.userId; // Assuming req.user contains the authenticated user's info
+  console.log(userId)
+  const tickets = await Ticket.find();
+  console.log(tickets)
+
+
+  const alltickets = await Ticket.find({ createdBy: userId });
+  const total = await Ticket.countDocuments({ assignee: userId });
+
+  res.status(StatusCodes.OK).json({ tickets, total });
+};
 
 module.exports = {
   getAllTickets,
@@ -97,4 +107,5 @@ module.exports = {
   updateTicket,
   deleteTicket,
   deleteAllTickets,
+  getMyTickets
 };

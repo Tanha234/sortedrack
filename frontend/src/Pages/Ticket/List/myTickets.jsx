@@ -10,9 +10,9 @@ import PaginationComponent from "../../../component/Pagination/Pagination";
 import Modal from "react-bootstrap/Modal";
 import AddTicket from "../Add/index";
 import TicketEdit from "../Edit/index";
-import { debounce } from 'lodash';
+import { debounce } from "lodash";
 
-const MyTicketList = () => {
+const MyTickets = () => {
   const [response, error, loading, axiosFetch] = useAxios();
   const [search, setSearch] = useState("");
   const [suggestions, setSuggestions] = useState([]);
@@ -26,42 +26,39 @@ const MyTicketList = () => {
   const [selectedTicketId, setSelectedTicketId] = useState(null);
 
   const userEmail = useMemo(() => {
-    const userDetails = localStorage.getItem('userDetails');
+    const userDetails = localStorage.getItem("userDetails");
     if (userDetails) {
       const parsedDetails = JSON.parse(userDetails);
-      return parsedDetails.email || 'N/A';
+      return parsedDetails.email || "N/A";
     }
-    return 'N/A';
+    return "N/A";
   }, []);
 
-  const fetchUserDetails = async (page = 1, searchTerm = "") => {
+  const fetchMyTickets = async (page = 1, searchTerm = "") => {
     const searchQuery = searchTerm ? `&search=${searchTerm}` : "";
     await axiosFetch({
       axiosInstance: axiosSecure,
       method: "GET",
-      url: `/tickets/mytickets`,
-      requestConfig: [
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.userDetails && JSON.parse(localStorage.userDetails).token}`,
-          },
+      url: `/myTickets?page=${page}&limit=${ITEMS_PER_PAGE}${searchQuery}`,
+      requestConfig: {
+        headers: {
+          Authorization: `Bearer ${localStorage.userDetails && JSON.parse(localStorage.userDetails).token}`,
         },
-      ],
+      },
     });
   };
 
   useEffect(() => {
-    fetchUserDetails(currentPage);
+    fetchMyTickets(currentPage);
   }, [currentPage]);
 
   useEffect(() => {
     if (search) {
       const debouncedFetch = debounce(() => {
-        fetchUserDetails(currentPage, search);
+        fetchMyTickets(currentPage, search);
 
-        // Filter suggestions by priority
-        const filteredSuggestions = (response?.tickets || []).filter(ticket =>
-          ticket.priority.toLowerCase().includes(search.toLowerCase())  // Match based on priority
+        const filteredSuggestions = (response?.tickets || []).filter((ticket) =>
+          ticket.priority.toLowerCase().includes(search.toLowerCase())
         );
 
         setSuggestions(filteredSuggestions);
@@ -86,7 +83,7 @@ const MyTicketList = () => {
           },
         }
       );
-      fetchUserDetails(currentPage);
+      fetchMyTickets(currentPage);
     } catch (error) {
       console.error("Error updating ticket status", error);
     }
@@ -99,7 +96,7 @@ const MyTicketList = () => {
           Authorization: `Bearer ${localStorage.userDetails && JSON.parse(localStorage.userDetails).token}`,
         },
       });
-      fetchUserDetails(currentPage);
+      fetchMyTickets(currentPage);
     } catch (error) {
       console.error("Error deleting ticket", error);
     }
@@ -111,7 +108,7 @@ const MyTicketList = () => {
 
     if (search) {
       filteredResult = filteredResult.filter((currentItem) =>
-        currentItem.priority.toLowerCase().includes(search.toLowerCase())  // Filter based on priority
+        currentItem.priority.toLowerCase().includes(search.toLowerCase())
       );
     }
     return filteredResult.slice(
@@ -125,8 +122,8 @@ const MyTicketList = () => {
   };
 
   const handleSuggestionClick = (suggestion) => {
-    setSearch(suggestion.priority);  // Set the search field with selected suggestion
-    setShowSuggestions(false);  // Hide suggestions after selection
+    setSearch(suggestion.priority);
+    setShowSuggestions(false);
   };
 
   const handleShowAdd = () => setShowAddModal(true);
@@ -141,23 +138,23 @@ const MyTicketList = () => {
   };
 
   const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+    const options = { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
   return (
     <Container fluid className="ticket-system">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>Support Tickets</h2>
+        <h2>My Support Tickets</h2>
       </div>
 
       <div className="ticket-filters mb-4">
         <Form.Group as={Col} md="4" className="mb-3">
-          <Form.Control 
-            onChange={handleSearch} 
+          <Form.Control
+            onChange={handleSearch}
             value={search}
-            type="text" 
-            placeholder="Search by Priority (e.g., High, Medium, Low)" 
+            type="text"
+            placeholder="Search by Priority (e.g., High, Medium, Low)"
           />
         </Form.Group>
       </div>
@@ -171,17 +168,16 @@ const MyTicketList = () => {
       )}
       {!loading && error && <p className="alert alert-danger">{error}</p>}
 
-      {/* Display Suggestions as Cards */}
       {showSuggestions && (
         <div className="suggestions-cards">
           {suggestions.map((suggestion) => (
             <div key={suggestion._id} className="ticket-item p-3 mb-3 border rounded">
               <div className="d-flex justify-content-between align-items-center mb-2">
                 <h5>Ticket ID: {suggestion._id}</h5>
-                <Form.Select 
-                  value={suggestion.status} 
+                <Form.Select
+                  value={suggestion.status}
                   onChange={(e) => handleStatusChange(suggestion._id, e.target.value)}
-                  style={{ width: 'auto' }}
+                  style={{ width: "auto" }}
                 >
                   <option value="Open">Open</option>
                   <option value="In Progress">In Progress</option>
@@ -192,8 +188,13 @@ const MyTicketList = () => {
                 <strong>Description:</strong> {suggestion.description}
               </div>
               <div className="mb-2">
-                <strong>Priority:</strong> 
-                <Badge bg={suggestion.priority === 'High' ? 'danger' : suggestion.priority === 'Medium' ? 'warning' : 'info'} className="ms-2">
+                <strong>Priority:</strong>
+                <Badge
+                  bg={
+                    suggestion.priority === "High" ? "danger" : suggestion.priority === "Medium" ? "warning" : "info"
+                  }
+                  className="ms-2"
+                >
                   {suggestion.priority}
                 </Badge>
               </div>
@@ -219,16 +220,18 @@ const MyTicketList = () => {
         </div>
       )}
 
-      {totalItems > 0 && (
-        <div className="ticket-list">
+      {!loading && !error && filtered.length === 0 && <p>No tickets found.</p>}
+
+      {!loading && !error && filtered.length > 0 && (
+        <div className="tickets-list">
           {filtered.map((item) => (
             <div key={item._id} className="ticket-item p-3 mb-3 border rounded">
               <div className="d-flex justify-content-between align-items-center mb-2">
                 <h5>Ticket ID: {item._id}</h5>
-                <Form.Select 
-                  value={item.status} 
+                <Form.Select
+                  value={item.status}
                   onChange={(e) => handleStatusChange(item._id, e.target.value)}
-                  style={{ width: 'auto' }}
+                  style={{ width: "auto" }}
                 >
                   <option value="Open">Open</option>
                   <option value="In Progress">In Progress</option>
@@ -239,8 +242,13 @@ const MyTicketList = () => {
                 <strong>Description:</strong> {item.description}
               </div>
               <div className="mb-2">
-                <strong>Priority:</strong> 
-                <Badge bg={item.priority === 'High' ? 'danger' : item.priority === 'Medium' ? 'warning' : 'info'} className="ms-2">
+                <strong>Priority:</strong>
+                <Badge
+                  bg={
+                    item.priority === "High" ? "danger" : item.priority === "Medium" ? "warning" : "info"
+                  }
+                  className="ms-2"
+                >
                   {item.priority}
                 </Badge>
               </div>
@@ -257,6 +265,9 @@ const MyTicketList = () => {
                 <strong>Entry Date:</strong> {formatDate(item.createdAt)}
               </div>
               <div className="d-flex justify-content-end mt-3">
+                <Button variant="outline-primary" size="sm" onClick={() => handleShowEdit(item._id)}>
+                  <i className="bi bi-pencil"></i> Edit
+                </Button>
                 <Button variant="outline-danger" size="sm" onClick={() => handleDeleteTicket(item._id)}>
                   <i className="bi bi-trash"></i> Delete
                 </Button>
@@ -266,34 +277,38 @@ const MyTicketList = () => {
         </div>
       )}
 
-      <PaginationComponent
-        totalItems={totalItems}
-        itemsPerPage={ITEMS_PER_PAGE}
-        currentPage={currentPage}
-        onPageChange={(page) => setCurrentPage(page)}
-      />
+      {totalItems > 0 && (
+        <PaginationComponent
+          totalItems={totalItems}
+          itemsPerPage={ITEMS_PER_PAGE}
+          currentPage={currentPage}
+          setCurrentPage={setCurrentPage}
+        />
+      )}
 
-      {/* Add Ticket Modal */}
+      <Button variant="primary" onClick={handleShowAdd} className="mt-4">
+        <i className="bi bi-plus"></i> Add New Ticket
+      </Button>
+
       <Modal show={showAddModal} onHide={handleCloseAdd}>
         <Modal.Header closeButton>
-          <Modal.Title>Add Ticket</Modal.Title>
+          <Modal.Title>Add New Ticket</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <AddTicket />
+          <AddTicket onClose={handleCloseAdd} onTicketAdded={fetchMyTickets} />
         </Modal.Body>
       </Modal>
 
-      {/* Edit Ticket Modal */}
       <Modal show={showEditModal} onHide={handleCloseEdit}>
         <Modal.Header closeButton>
           <Modal.Title>Edit Ticket</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {selectedTicketId && <TicketEdit ticketId={selectedTicketId} />}
+          <TicketEdit ticketId={selectedTicketId} onClose={handleCloseEdit} onTicketUpdated={fetchMyTickets} />
         </Modal.Body>
       </Modal>
     </Container>
   );
 };
 
-export default MyTicketList;
+export default MyTickets;
